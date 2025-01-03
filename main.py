@@ -10,8 +10,8 @@ from skimage.metrics import structural_similarity as ssim
 Tk().withdraw()  #ascunde fereastra tk
 
 
-image_PATH=askopenfilename(title="Selecteaza prima imagine",filetypes=[("imagini","*.exr"),("imaginipng","*.png")])
-image_PATH2=askopenfilename(title="Selecteaza prima imagine",filetypes=[("imagini","*.exr"),("imaginipng","*.png")])
+image_PATH=askopenfilename(title="Selecteaza prima imagine",filetypes=[("imaginipng","*.png")])
+image_PATH2=askopenfilename(title="Selecteaza prima imagine",filetypes=[("imaginipng","*.png")])
 
 if(image_PATH):
     image=cv2.imread(image_PATH,cv2.IMREAD_UNCHANGED)

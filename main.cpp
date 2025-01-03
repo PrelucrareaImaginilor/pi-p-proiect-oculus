@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
     int i = 0;
     sl::Mat image, depth, point_cloud;
 
-    while (i < 1) {
+    while (i < 100) {
         // A new image is available if grab() returns ERROR_CODE::SUCCESS
         if (zed.grab() == ERROR_CODE::SUCCESS) {
             // Retrieve left image
@@ -98,7 +98,11 @@ int main(int argc, char **argv) {
                // cv::imwrite("depth_map.exr", image_ocv);
                 float depth_value = 0;
                 
-                depth.write("imagineadanc.png");
+                std::string baza_nume = "imagineadanc";
+                std::string extensie = ".png";
+                std::string nume_fisier = baza_nume + std::to_string(i) + extensie;
+                const char* normal_string = nume_fisier.c_str();
+                depth.write(normal_string);
                 cv::waitKey(0);
                 
                 cout << "Harta de adâncime salvată ca depth_map.exr" << endl;
