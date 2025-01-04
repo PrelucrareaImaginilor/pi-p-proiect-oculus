@@ -1,65 +1,64 @@
 import os
-os.environ["OPENCV_IO_ENABLE_OPENEXR"]="1"
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
-from tkinter import Tk
-from tkinter.filedialog import askopenfilename
 from skimage.metrics import structural_similarity as ssim
+import matplotlib.pyplot as plt
+from tkinter import Tk
+from tkinter.filedialog import askdirectory
 
-def upscale_image(image, target_width, target_height):
-    return cv2.resize(image, (target_width, target_height), interpolation=cv2.INTER_LINEAR)
+def incarca_imagini_din_folder(cale_folder):
+    imagini = []
+    for fisier in sorted(os.listdir(cale_folder)):
+        cale_fisier = os.path.join(cale_folder, fisier)
+        if fisier.endswith(".png"):
+            img = cv2.imread(cale_fisier, cv2.IMREAD_UNCHANGED)
+            if img is not None:
+                imagini.append(img)
+    return imagini
 
-Tk().withdraw()  #ascunde fereastra tk
+def calculeaza_media_imaginilor(imagini):
+    if not imagini:
+        raise ValueError("Nu exista imagini pentru a calcula media.")
+    imagine_medie = np.mean(np.stack(imagini, axis=0), axis=0)
+    return imagine_medie.astype(imagini[0].dtype)
 
+def proceseaza_foldere_si_calculeaza_diferente(folder1, folder2):
+    imagini1 = incarca_imagini_din_folder(folder1)
+    imagini2 = incarca_imagini_din_folder(folder2)
 
-image_PATH=askopenfilename(title="Selecteaza prima imagine",filetypes=[("imaginipng","*.png")])
-image_PATH2=askopenfilename(title="Selecteaza a doua imagine",filetypes=[("imaginipng","*.png")])
+    if not imagini1 or not imagini2:
+        raise ValueError("Unul sau ambele foldere sunt goale sau nu contin imagini valide.")
 
-if(image_PATH):
-    image=cv2.imread(image_PATH,cv2.IMREAD_UNCHANGED)
-    image2=cv2.imread(image_PATH2,cv2.IMREAD_UNCHANGED)
-    image=upscale_image(image,1280,720)
-    difference = cv2.absdiff(image , image2)
-    EROARE_MEDIE=np.mean(difference)
-    img=cv2.normalize(difference,None,alpha=0,beta=255,norm_type=cv2.NORM_MINMAX)
-    #plt.imshow(img)
-    #cv2.imshow("imagine",image)
-    #cv2.imshow("img",img)
-    #cv2.imshow("difference",img)
-    plt.hist(difference.ravel(), bins=100, range=(0, 5000), color='blue', alpha=0.7)
-    if image.shape != image2.shape:
-        print("Redimensionare imagini pentru a avea aceeași dimensiune...")
-        image2 = cv2.resize(image2, (image.shape[1], image.shape[0]))
-    # 3. Calculul SSIM
-    score, diff = ssim(image, image2, full=True)
-    print(f"SSIM Score: {score:.4f}")
+    imagine_medie1 = calculeaza_media_imaginilor(imagini1)
+    imagine_medie2 = calculeaza_media_imaginilor(imagini2)
 
-    # 4. Procesare diferențe
-    diff = (diff * 255).astype("uint8")
+    if imagine_medie1.shape != imagine_medie2.shape:
+        imagine_medie2 = cv2.resize(imagine_medie2, (imagine_medie1.shape[1], imagine_medie1.shape[0]))
 
-    # 5. Vizualizare imagini și diferențe
+    scor_ssim, diferenta = ssim(imagine_medie1, imagine_medie2, full=True)
+    print(f"Scor SSIM (imagini medii): {scor_ssim:.4f}")
+
+    diferenta = (diferenta * 255).astype("uint8")
+
     plt.figure(figsize=(10, 6))
 
     plt.subplot(1, 3, 1)
-    plt.title("Imagine 1")
-    plt.imshow(image, cmap='gray')
+    plt.title("Imagine Medie 1")
+    plt.imshow(imagine_medie1, cmap='gray')
 
     plt.subplot(1, 3, 2)
-    plt.title("Imagine 2")
-    plt.imshow(image2, cmap='gray')
+    plt.title("Imagine Medie 2")
+    plt.imshow(imagine_medie2, cmap='gray')
 
     plt.subplot(1, 3, 3)
-    plt.title("Diferență (SSIM)")
-    plt.imshow(diff, cmap='hot')
+    plt.title("Diferenta (SSIM)")
+    plt.imshow(diferenta, cmap='hot')
 
     plt.tight_layout()
     plt.show()
 
+Tk().withdraw()
+folder1 = askdirectory(title="Selectati primul folder")
+folder2 = askdirectory(title="Selectati al doilea folder")
 
-plt.title("histograma harta de adancime")
-plt.xlabel("adancime")
-plt.ylabel("numarul de pixeli")
-plt.grid(True)
-plt.show()
-cv2.waitKey(0)
+proceseaza_foldere_si_calculeaza_diferente(folder1, folder2)
