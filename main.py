@@ -7,15 +7,19 @@ from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from skimage.metrics import structural_similarity as ssim
 
+def upscale_image(image, target_width, target_height):
+    return cv2.resize(image, (target_width, target_height), interpolation=cv2.INTER_LINEAR)
+
 Tk().withdraw()  #ascunde fereastra tk
 
 
 image_PATH=askopenfilename(title="Selecteaza prima imagine",filetypes=[("imaginipng","*.png")])
-image_PATH2=askopenfilename(title="Selecteaza prima imagine",filetypes=[("imaginipng","*.png")])
+image_PATH2=askopenfilename(title="Selecteaza a doua imagine",filetypes=[("imaginipng","*.png")])
 
 if(image_PATH):
     image=cv2.imread(image_PATH,cv2.IMREAD_UNCHANGED)
     image2=cv2.imread(image_PATH2,cv2.IMREAD_UNCHANGED)
+    image=upscale_image(image,1280,720)
     difference = cv2.absdiff(image , image2)
     EROARE_MEDIE=np.mean(difference)
     img=cv2.normalize(difference,None,alpha=0,beta=255,norm_type=cv2.NORM_MINMAX)
