@@ -11,14 +11,14 @@ def incarca_imagini_din_folder(cale_folder):
     for fisier in sorted(os.listdir(cale_folder)):
         cale_fisier = os.path.join(cale_folder, fisier)
         if fisier.endswith(".png"):
-            img = cv2.imread(cale_fisier, cv2.IMREAD_GRAYSCALE)  # Citeste imaginea in grayscale
+            img = cv2.imread(cale_fisier, cv2.IMREAD_UNCHANGED)  # Citeste imaginea fara modificari de tip de date
             if img is not None:
                 imagini.append(img)
     return imagini
 
 def aliniaza_imagine(imagine, referinta):
     if imagine.shape[:2] != referinta.shape[:2]:
-        imagine = cv2.resize(imagine, (referinta.shape[1], referinta.shape[0]))
+        imagine = cv2.resize(imagine, (referinta.shape[1], referinta.shape[0]), interpolation=cv2.INTER_LINEAR)
     return imagine
 
 def oglindeste_imagine(imagine):
@@ -52,9 +52,9 @@ def proceseaza_foldere_si_calculeaza_diferente(folder1, folder2):
     imagine_medie2 = calculeaza_media_imaginilor(imagini2)
 
     if imagine_medie1.shape != imagine_medie2.shape:
-        imagine_medie2 = cv2.resize(imagine_medie2, (imagine_medie1.shape[1], imagine_medie1.shape[0]))
+        imagine_medie2 = cv2.resize(imagine_medie2, (imagine_medie1.shape[1], imagine_medie1.shape[0]), interpolation=cv2.INTER_LINEAR)
 
-    scor_ssim, diferenta = ssim(imagine_medie1, imagine_medie2, full=True)
+    scor_ssim, diferenta = ssim(imagine_medie1, imagine_medie2, full=True, data_range=imagine_medie2.max() - imagine_medie2.min())
     print(f"Scor SSIM (imagini medii): {scor_ssim:.4f}")
 
     diferenta = (diferenta * 255).astype("uint8")
