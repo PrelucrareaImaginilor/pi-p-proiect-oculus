@@ -11,10 +11,23 @@ def incarca_imagini_din_folder(cale_folder):
     for fisier in sorted(os.listdir(cale_folder)):
         cale_fisier = os.path.join(cale_folder, fisier)
         if fisier.endswith(".png"):
-            img = cv2.imread(cale_fisier, cv2.IMREAD_UNCHANGED)
+            img = cv2.imread(cale_fisier, cv2.IMREAD_GRAYSCALE)  # Citeste imaginea in grayscale
             if img is not None:
                 imagini.append(img)
     return imagini
+
+def aliniaza_imagine(imagine, referinta):
+    if imagine.shape[:2] != referinta.shape[:2]:
+        imagine = cv2.resize(imagine, (referinta.shape[1], referinta.shape[0]))
+    return imagine
+
+def oglindeste_imagine(imagine):
+    return cv2.flip(imagine, 1)
+
+def proceseaza_si_oglindeste_imagini(folder, referinta):
+    imagini = incarca_imagini_din_folder(folder)
+    imagini_corectate = [aliniaza_imagine(oglindeste_imagine(img), referinta) for img in imagini]
+    return imagini_corectate
 
 def calculeaza_media_imaginilor(imagini):
     if not imagini:
@@ -22,12 +35,18 @@ def calculeaza_media_imaginilor(imagini):
     imagine_medie = np.mean(np.stack(imagini, axis=0), axis=0)
     return imagine_medie.astype(imagini[0].dtype)
 
-def proceseaza_foldere_si_calculeaza_diferente(folder1, folder2):
-    imagini1 = incarca_imagini_din_folder(folder1)
-    imagini2 = incarca_imagini_din_folder(folder2)
+def detecteaza_schimbari(imagine1, imagine2, prag):
+    diferenta = cv2.absdiff(imagine1, imagine2)
+    schimbari = (diferenta > prag).astype(np.uint8) * 255
+    return schimbari
 
-    if not imagini1 or not imagini2:
-        raise ValueError("Unul sau ambele foldere sunt goale sau nu contin imagini valide.")
+def proceseaza_foldere_si_calculeaza_diferente(folder1, folder2):
+    imagini2 = incarca_imagini_din_folder(folder2)
+    if not imagini2:
+        raise ValueError("Folderul al doilea este gol sau nu contine imagini valide.")
+
+    referinta = imagini2[0]
+    imagini1 = proceseaza_si_oglindeste_imagini(folder1, referinta)
 
     imagine_medie1 = calculeaza_media_imaginilor(imagini1)
     imagine_medie2 = calculeaza_media_imaginilor(imagini2)
@@ -40,19 +59,31 @@ def proceseaza_foldere_si_calculeaza_diferente(folder1, folder2):
 
     diferenta = (diferenta * 255).astype("uint8")
 
-    plt.figure(figsize=(10, 6))
+    schimbari = detecteaza_schimbari(imagine_medie1, imagine_medie2, prag=10)
 
-    plt.subplot(1, 3, 1)
+    plt.figure(figsize=(15, 8))
+
+    plt.subplot(2, 3, 1)
     plt.title("Imagine Medie 1")
     plt.imshow(imagine_medie1, cmap='gray')
 
-    plt.subplot(1, 3, 2)
+    plt.subplot(2, 3, 2)
     plt.title("Imagine Medie 2")
     plt.imshow(imagine_medie2, cmap='gray')
 
-    plt.subplot(1, 3, 3)
+    plt.subplot(2, 3, 3)
     plt.title("Diferenta (SSIM)")
     plt.imshow(diferenta, cmap='hot')
+
+    plt.subplot(2, 3, 4)
+    plt.title("Schimbari Detectate")
+    plt.imshow(schimbari, cmap='gray')
+
+    plt.subplot(2, 3, 5)
+    plt.title("Histograma Diferentelor")
+    plt.hist(diferenta.ravel(), bins=50, color='blue', alpha=0.7)
+    plt.xlabel("Valoarea Diferentei")
+    plt.ylabel("Numarul de Pixeli")
 
     plt.tight_layout()
     plt.show()
