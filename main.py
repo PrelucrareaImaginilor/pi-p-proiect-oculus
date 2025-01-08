@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 from tkinter import Tk
 from tkinter.filedialog import askdirectory
 
-def incarca_imagini_din_folder(cale_folder):
+def incarca_imagini(cale):
     imagini = []
-    for fisier in sorted(os.listdir(cale_folder)):
+    for fisier in sorted(os.listdir(cale)):
         cale_fisier = os.path.join(cale_folder, fisier)
         if fisier.endswith(".png"):
             img = cv2.imread(cale_fisier, cv2.IMREAD_UNCHANGED)  # Citeste imaginea fara modificari de tip de date
@@ -16,29 +16,29 @@ def incarca_imagini_din_folder(cale_folder):
                 imagini.append(img)
     return imagini
 
-def proceseaza_si_oglindeste_imagini(folder, referinta):
-    imagini = incarca_imagini_din_folder(folder)
+def proceseaza_si_oglindesteimag(folder, referinta):   #nu stiu dc orbek ia imaginea in orglinda
+    imagini = incarca_imagini(folder)
     imagini_corectate = [aliniaza_imagine(oglindeste_imagine(img), referinta) for img in imagini]
     return imagini_corectate
 
 def calculeaza_media_imaginilor(imagini):
     if not imagini:
         raise ValueError("Eroare incarcare fisier ")
-    imagine_medie = np.mean(np.stack(imagini, axis=0), axis=0) #calculeaza media aritmetica a imaginilor
-    return imagine_medie.astype(imagini[0].dtype)
+    imagine_med = np.mean(np.stack(imagini, axis=0), axis=0) #calculeaza media aritmetica a imaginilor
+    return imagine_med.astype(imagini[0].dtype)
 
 def detecteaza_schimbari(imagine1, imagine2, prag): 
-    diferenta = cv2.absdiff(imagine1, imagine2) 
+    diferenta = cv2.absdiff(imagine1, imagine2)     #afiseaza zonele mai pronuntate
     schimbari = (diferenta > prag).astype(np.uint8) * 255
     return schimbari
 
 def proceseaza_foldere(folder1, folder2):
-    imagini2 = incarca_imagini_din_folder(folder2) #preia toate fisierele dintr un folder si caluleaza o medie a valorilor
+    imagini2 = incarca_imagini(folder2) #preia toate fisierele dintr un folder si caluleaza o medie a valorilor
     if not imagini2:
         raise ValueError("Folderul al doilea este gol sau nu contine imagini valide.")
 
     referinta = imagini2[0]
-    imagini1 = proceseaza_si_oglindeste_imagini(folder1, referinta)
+    imagini1 = proceseaza_si_oglindesteimag(folder1, referinta)
 
     imagine_medie1 = calculeaza_media_imaginilor(imagini1)
     imagine_medie2 = calculeaza_media_imaginilor(imagini2)
@@ -49,22 +49,22 @@ def proceseaza_foldere(folder1, folder2):
     scor_ssim, diferenta = ssim(imagine_medie1, imagine_medie2, full=True, data_range=imagine_medie2.max() - imagine_medie2.min()) #ssim
     print(f"Scor SSIM (imagini medii): {scor_ssim:.4f}") #structural similarity index measure-detecteaza similaritatea dintre 2imagini
 
-    diferenta = (diferenta * 255).astype("uint8")
-
+    diferenta = (diferenta * 255).astype("uint8") #afiseaza cu negru zonele cu diferente foarte mari
+ 
     schimbari = detecteaza_schimbari(imagine_medie1, imagine_medie2, prag=10)
 
     plt.figure(figsize=(15, 8))
 
     plt.subplot(2, 3, 1)
-    plt.title("Imagine Medie 1")
+    plt.title("Imagine1")
     plt.imshow(imagine_medie1, cmap='gray')
 
     plt.subplot(2, 3, 2)
-    plt.title("Imagine Medie 2")
+    plt.title("Imagine2")
     plt.imshow(imagine_medie2, cmap='gray')
 
     plt.subplot(2, 3, 3)
-    plt.title("Diferenta (SSIM)")
+    plt.title("Diferenta SSIM")
     plt.imshow(diferenta, cmap='hot')
 
     plt.subplot(2, 3, 4)
@@ -81,7 +81,7 @@ def proceseaza_foldere(folder1, folder2):
     plt.show()
 
 Tk().withdraw()
-folder1 = askdirectory(title="Selectati orbek folder")
+folder = askdirectory(title="Selectati orbek folder")
 folder2 = askdirectory(title="Selectati zedm folder")
 
-proceseaza_foldere(folder1, folder2)
+proceseaza_foldere(folder, folder2)
