@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
             cv::Mat depth_normalized;
             double min_val, max_val;
             cv::minMaxLoc(depth_ocv, &min_val, &max_val);
-            depth_ocv.convertTo(depth_normalized, CV_8UC1, 255.0 / (max_val - min_val), -min_val * 255.0 / (max_val - min_val));
+            depth_ocv.convertTo(depth_normalized, CV_8UC1, 255.0 / (max_val - min_val), -min_val * 255.0 / (max_val - min_val)); //convertesc pentru a putea 
 
             //color map
             cv::Mat depth_colored;
