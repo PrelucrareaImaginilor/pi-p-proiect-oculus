@@ -9,7 +9,7 @@ from tkinter.filedialog import askdirectory
 def incarca_imagini(cale):
     imagini = []
     for fisier in sorted(os.listdir(cale)):
-        cale_fisier = os.path.join(cale_folder, fisier)
+        cale_fisier = os.path.join(cale, fisier)
         if fisier.endswith(".png"):
             img = cv2.imread(cale_fisier, cv2.IMREAD_UNCHANGED)  # Citeste imaginea fara modificari de tip de date
             if img is not None:
@@ -18,10 +18,10 @@ def incarca_imagini(cale):
 
 def proceseaza_si_oglindesteimag(folder, referinta):   #nu stiu dc orbek ia imaginea in orglinda
     imagini = incarca_imagini(folder)
-    imagini_corectate = [aliniaza_imagine(oglindeste_imagine(img), referinta) for img in imagini]
+    imagini_corectate = [(cv2.flip(imagini), 1, referinta) for img in imagini]
     return imagini_corectate
 
-def calculeaza_media_imaginilor(imagini):
+def calculeaza_media(imagini):
     if not imagini:
         raise ValueError("Eroare incarcare fisier ")
     imagine_med = np.mean(np.stack(imagini, axis=0), axis=0) #calculeaza media aritmetica a imaginilor
@@ -40,8 +40,8 @@ def proceseaza_foldere(folder1, folder2):
     referinta = imagini2[0]
     imagini1 = proceseaza_si_oglindesteimag(folder1, referinta)
 
-    imagine_medie1 = calculeaza_media_imaginilor(imagini1)
-    imagine_medie2 = calculeaza_media_imaginilor(imagini2)
+    imagine_medie1 = calculeaza_media(imagini1)
+    imagine_medie2 = calculeaza_media(imagini2)
 
     if imagine_medie1.shape != imagine_medie2.shape:
         imagine_medie2 = cv2.resize(imagine_medie2, (imagine_medie1.shape[1], imagine_medie1.shape[0]), interpolation=cv2.INTER_LINEAR)
