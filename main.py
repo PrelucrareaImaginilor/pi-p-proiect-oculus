@@ -16,14 +16,6 @@ def incarca_imagini_din_folder(cale_folder):
                 imagini.append(img)
     return imagini
 
-def aliniaza_imagine(imagine, referinta):
-    if imagine.shape[:2] != referinta.shape[:2]:
-        imagine = cv2.resize(imagine, (referinta.shape[1], referinta.shape[0]), interpolation=cv2.INTER_LINEAR)
-    return imagine
-
-def oglindeste_imagine(imagine):
-    return cv2.flip(imagine, 1)
-
 def proceseaza_si_oglindeste_imagini(folder, referinta):
     imagini = incarca_imagini_din_folder(folder)
     imagini_corectate = [aliniaza_imagine(oglindeste_imagine(img), referinta) for img in imagini]
@@ -31,17 +23,17 @@ def proceseaza_si_oglindeste_imagini(folder, referinta):
 
 def calculeaza_media_imaginilor(imagini):
     if not imagini:
-        raise ValueError("Nu exista imagini pentru a calcula media.")
-    imagine_medie = np.mean(np.stack(imagini, axis=0), axis=0)
+        raise ValueError("Eroare incarcare fisier ")
+    imagine_medie = np.mean(np.stack(imagini, axis=0), axis=0) #calculeaza media aritmetica a imaginilor
     return imagine_medie.astype(imagini[0].dtype)
 
-def detecteaza_schimbari(imagine1, imagine2, prag):
-    diferenta = cv2.absdiff(imagine1, imagine2)
+def detecteaza_schimbari(imagine1, imagine2, prag): 
+    diferenta = cv2.absdiff(imagine1, imagine2) 
     schimbari = (diferenta > prag).astype(np.uint8) * 255
     return schimbari
 
-def proceseaza_foldere_si_calculeaza_diferente(folder1, folder2):
-    imagini2 = incarca_imagini_din_folder(folder2)
+def proceseaza_foldere(folder1, folder2):
+    imagini2 = incarca_imagini_din_folder(folder2) #preia toate fisierele dintr un folder si caluleaza o medie a valorilor
     if not imagini2:
         raise ValueError("Folderul al doilea este gol sau nu contine imagini valide.")
 
@@ -54,8 +46,8 @@ def proceseaza_foldere_si_calculeaza_diferente(folder1, folder2):
     if imagine_medie1.shape != imagine_medie2.shape:
         imagine_medie2 = cv2.resize(imagine_medie2, (imagine_medie1.shape[1], imagine_medie1.shape[0]), interpolation=cv2.INTER_LINEAR)
 
-    scor_ssim, diferenta = ssim(imagine_medie1, imagine_medie2, full=True, data_range=imagine_medie2.max() - imagine_medie2.min())
-    print(f"Scor SSIM (imagini medii): {scor_ssim:.4f}")
+    scor_ssim, diferenta = ssim(imagine_medie1, imagine_medie2, full=True, data_range=imagine_medie2.max() - imagine_medie2.min()) #ssim
+    print(f"Scor SSIM (imagini medii): {scor_ssim:.4f}") #structural similarity index measure-detecteaza similaritatea dintre 2imagini
 
     diferenta = (diferenta * 255).astype("uint8")
 
@@ -89,7 +81,7 @@ def proceseaza_foldere_si_calculeaza_diferente(folder1, folder2):
     plt.show()
 
 Tk().withdraw()
-folder1 = askdirectory(title="Selectati primul folder")
-folder2 = askdirectory(title="Selectati al doilea folder")
+folder1 = askdirectory(title="Selectati orbek folder")
+folder2 = askdirectory(title="Selectati zedm folder")
 
-proceseaza_foldere_si_calculeaza_diferente(folder1, folder2)
+proceseaza_foldere(folder1, folder2)
