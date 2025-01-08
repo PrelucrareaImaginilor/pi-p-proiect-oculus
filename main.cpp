@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
     sl::Mat image, depth;
     char key = ' ';
 
-    while (key != 'q') { // Press 'q' to exit the loop
+    while (key != 'q') { // press 'q' to exit the loop
         if (zed.grab() == ERROR_CODE::SUCCESS) {
             zed.retrieveImage(image, VIEW::LEFT);
             zed.retrieveMeasure(depth, MEASURE::DEPTH);
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    // Close the camera and destroy the window
+    // close the camera and destroy the window
     zed.close();
     cv::destroyWindow(window_name);
     return EXIT_SUCCESS;
